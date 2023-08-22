@@ -1,0 +1,4 @@
+telegram
+logging
+pathlib
+python-telegram-bot
