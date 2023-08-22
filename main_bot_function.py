@@ -1,8 +1,11 @@
 import logging
 import telegram
 from telegram import Update,InlineQueryResultArticle, InputTextMessageContent
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, InlineQueryHandler
+from telegram.ext import ConversationHandler,ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, InlineQueryHandler
 import pathlib
+import os
+import shutil
+
 
 #log
 # logging.basicConfig(
@@ -10,13 +13,15 @@ import pathlib
 #     level=logging.INFO
 # )
 
-#receive&reply message
+#start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="I'm a bot, please talk to me!"
+        text="this is FATGPT, plz use /upload to upload files, or it will not be accepted"
     )
 
+
+# to check if bot running
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text=update.message.text
     #reply with text
@@ -39,31 +44,81 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #     photo="image1.webp")
 
 #reply inline query
-async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.inline_query.query
-    print(query)
-    if not query:
-        return
-    results = []
-    results.append(
-        InlineQueryResultArticle(
-            id=query,
-            title='Caps',
-            input_message_content=InputTextMessageContent(query)
-        )
-    )
-    print(results)
-    await context.bot.answer_inline_query(update.inline_query.id, results)
+# async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     query = update.inline_query.query
+#     print(query)
+#     if not query:
+#         return
+#     results = []
+#     results.append(
+#         InlineQueryResultArticle(
+#             id=query,
+#             title='Caps',
+#             input_message_content=InputTextMessageContent(query)
+#         )
+#     )
+#     print(results)
+#     await context.bot.answer_inline_query(update.inline_query.id, results)
+    # inline_caps_handler = InlineQueryHandler(inline_caps)
+    # application.add_handler(inline_caps_handler)
+
 
 #receive file
 async def downloader(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     file=await context.bot.get_file(update.message.document.file_id)
-    await file.download_to_drive(update.message.document.file_name)
+
+
+    folder_name=update.message.from_user.username
+
+    await file.download_to_drive(folder_name+"/"+update.message.document.file_name)
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text="done")
+        text="received, when finish enter /finish, cancel enter /cancel")
+
+#init upload
+async def upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    folder_name=update.message.from_user.username
+
+    if(os.path.exists(folder_name)):
+        shutil.rmtree(folder_name)
+    os.mkdir(folder_name)
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="ok plz send the files, when finish enter /finish, cancel enter /cancel"
+    )
+    return downloader
+#end conversation
+async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="finished file uploading let me process"
+    )
+    return ConversationHandler.END
+
+# remove the folder to cancel upload
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    folder_name=update.message.from_user.username
+    
+    if(os.path.exists(folder_name)):
+        shutil.rmtree(folder_name)
+
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="cancelled plz use /upload again"
+    )
+    return ConversationHandler.END
+
+
+# send file without /upload
+async def send_file_without_upload_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="plz use /upload to start an upload"
+    )
 
 #wrap up
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -79,22 +134,34 @@ if __name__ == '__main__':
     application = ApplicationBuilder().token('6625209100:AAHubzFHR4rpc8CNZCfPgChjWQdq3M3LHIE').build()
     
     #load bot handler 
-    start_handler = CommandHandler('start', start)
-    application.add_handler(start_handler)
-    
+
 
     echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
     application.add_handler(echo_handler)
 
-    inline_caps_handler = InlineQueryHandler(inline_caps)
-    application.add_handler(inline_caps_handler)
-
-    file_handler=MessageHandler(filters.Document.ALL, downloader)
-    application.add_handler(file_handler)
+    start_handler = CommandHandler('start', start)
+    application.add_handler(start_handler)
 
 
+    # send file without /upload will not be processed
 
 
+
+    # use /upload to start an upload, then upload file as you like, 
+    # choose /cancel to remove folders,
+    # choose /finish to process the files
+    file_reciever_handler=ConversationHandler(
+        entry_points=[CommandHandler('upload', upload)],
+        states={downloader:[MessageHandler(filters.Document.ALL, downloader)]},
+        fallbacks=[CommandHandler('finish', finish),CommandHandler('cancel', cancel)])
+    application.add_handler(file_reciever_handler)
+
+    # must come after the file_reciever_handler!!!
+    send_file_without_upload_cmd_handler=MessageHandler(filters.Document.ALL, send_file_without_upload_cmd)
+    application.add_handler(send_file_without_upload_cmd_handler)
+
+
+    # must come after everything
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     application.add_handler(unknown_handler)
 
