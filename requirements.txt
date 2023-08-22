@@ -2,3 +2,6 @@ telegram
 logging
 pathlib
 python-telegram-bot
+openai
+pdfreader
+pypdf2
