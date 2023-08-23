@@ -8,6 +8,7 @@ import os
 import shutil
 import requests
 
+from query_gpt_ai import summarisation
 
 #log
 # logging.basicConfig(
@@ -93,12 +94,19 @@ async def upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return downloader
 #end conversation
 async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="finished file uploading let me process"
     )
+    directory=os.getcwd()+"/"+update.message.from_user.username
+    
+    for filename in os.listdir(directory):
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="<b>"+filename+"</b>\n\n"+summarisation(os.path.join(directory, filename))+"\n",
+            parse_mode="HTML"
+        )
+
     return ConversationHandler.END
 
 # remove the folder to cancel upload
@@ -196,7 +204,6 @@ if __name__ == '__main__':
     application = ApplicationBuilder().token('6625209100:AAHubzFHR4rpc8CNZCfPgChjWQdq3M3LHIE').build()
     
     #load bot handler 
-
 
 
     start_handler = CommandHandler('start', start)
