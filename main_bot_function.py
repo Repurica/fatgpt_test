@@ -1,8 +1,8 @@
 
 import logging
 import telegram
-from telegram import Update,InlineQueryResultArticle, InputTextMessageContent
-from telegram.ext import ConversationHandler,ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, InlineQueryHandler
+from telegram import InlineKeyboardMarkup,InlineKeyboardButton,Update,InlineQueryResultArticle, InputTextMessageContent
+from telegram.ext import CallbackQueryHandler, ConversationHandler,ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, InlineQueryHandler
 import pathlib
 import os
 import shutil
@@ -30,7 +30,8 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #reply with text
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=text)
+        text=text
+        )
 
     #reply with file
     # await context.bot.send_document(
@@ -74,10 +75,23 @@ async def downloader(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     folder_name=update.message.from_user.username
 
+    
+    
+    keyboard = [
+        [
+            InlineKeyboardButton("Finish", callback_data="Finish"),
+            InlineKeyboardButton("Cancel", callback_data="Cancel"),
+        ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text("received, when finish enter /finish, cancel enter /cancel:", reply_markup=reply_markup)
+ 
     await file.download_to_drive(folder_name+"/"+update.message.document.file_name)
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, 
-        text="received, when finish enter /finish, cancel enter /cancel")
+    # await context.bot.send_message(
+    #     chat_id=update.effective_chat.id, 
+    #     text="received, when finish enter /finish, cancel enter /cancel")
 
 #init upload
 async def upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -93,12 +107,16 @@ async def upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return downloader
 #end conversation
+
+
+
+
 async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="finished file uploading let me process"
     )
-    directory=os.getcwd()+"/"+update.message.from_user.username
+    directory=os.getcwd()+"/"+update.callback_query.from_user.username
     
     for filename in os.listdir(directory):
         await context.bot.send_message(
@@ -111,7 +129,7 @@ async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # remove the folder to cancel upload
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    folder_name=update.message.from_user.username
+    folder_name=update.callback_query.from_user.username
     
     if(os.path.exists(folder_name)):
         shutil.rmtree(folder_name)
@@ -121,6 +139,26 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text="cancelled plz use /upload again"
     )
     return ConversationHandler.END
+
+
+
+async def file_upload_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query.data
+    
+    if(query=="Finish"):
+       await finish(update,context)
+    elif(query=="Cancel"):
+       await cancel(update,context)
+
+    await update.callback_query.answer()
+
+
+
+
+
+
+
+
 
 
 # send file without /upload
@@ -224,7 +262,11 @@ if __name__ == '__main__':
     file_reciever_handler=ConversationHandler(
         entry_points=[CommandHandler('upload', upload)],
         states={downloader:[MessageHandler(filters.Document.ALL, downloader)]},
-        fallbacks=[CommandHandler('finish', finish),CommandHandler('cancel', cancel)])
+        fallbacks=[CallbackQueryHandler(file_upload_button)])
+    # file_reciever_handler=ConversationHandler(
+    #     entry_points=[CommandHandler('upload', upload)],
+    #     states={downloader:[MessageHandler(filters.Document.ALL, downloader)]},
+    #     fallbacks=[CommandHandler('finish', finish),CommandHandler('cancel', cancel)])
     application.add_handler(file_reciever_handler)
 
     # must come after the file_reciever_handler!!!

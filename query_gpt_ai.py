@@ -2,7 +2,7 @@ import openai
 import PyPDF2
 import re
 
-openai.api_key = "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"
+openai.api_key = "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"
 # openai.api_key = "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"
 def summarisation(file_directory):
   def get_page_text(page):
