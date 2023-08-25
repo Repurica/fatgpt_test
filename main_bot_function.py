@@ -8,7 +8,8 @@ import os
 import shutil
 import requests
 
-from query_gpt_ai import summarisation
+from backend_api import summarisation
+
 
 #log
 # logging.basicConfig(
@@ -48,7 +49,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #     photo="image1.webp")
 
 #reply inline query
-# async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# async def inline_caps(update: Update, `context: ContextTypes.DEFAULT_TYPE):
 #     query = update.inline_query.query
 #     print(query)
 #     if not query:
@@ -119,9 +120,15 @@ async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     directory=os.getcwd()+"/"+update.callback_query.from_user.username
     
     for filename in os.listdir(directory):
+        summary,keywords_dict=summarisation(os.path.join(directory, filename))
+        keywords_str=""
+
+        for i in keywords_dict["keywords"]:
+            keywords_str+=i+", "
+
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="<b>"+filename+"</b>\n\n"+summarisation(os.path.join(directory, filename))+"\n",
+            text="<b>"+filename+"</b>\n\n"+summary+"\n\n"+"<b>keywords related: </b>\n"+keywords_str[:-2],
             parse_mode="HTML"
         )
 
@@ -144,13 +151,13 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def file_upload_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query.data
+    await update.callback_query.answer()
     
     if(query=="Finish"):
        await finish(update,context)
     elif(query=="Cancel"):
        await cancel(update,context)
 
-    await update.callback_query.answer()
 
 
 
@@ -187,25 +194,34 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     URL ="http://api.semanticscholar.org/graph/v1/paper/search"
     # offset: skip first 10 result, limit: limit the number of records output, fields
+    # query':context.user_data["query"] --> the actual query from the next message
     PARAMS = {'query':context.user_data["query"],"offset":context.user_data["next_offset"],"fields":"title,authors"}
     r=requests.get(url=URL, params=PARAMS)
     data=r.json()
-    output=""
-    print(data["data"])
-    for paper in data["data"]:
-        output+="<b>"+paper["title"]+"</b>\n\nPaper ID: "+paper["paperId"]+"\n\nAuthors:\n"
+    if(data["total"]==0):
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="sorry no articles, try /idea and another keywords",
+            parse_mode="HTML"
+        )
+        return ConversationHandler.END
 
-        for author in paper["authors"]:
-            output+=author["name"]+"\n"
-        output+="\n\n"
+    else:
+        output=""
+        for paper in data["data"]:
+            output+="<b>"+paper["title"]+"</b>\n\nPaper ID: "+paper["paperId"]+"\n\nAuthors:\n"
 
-    output+="here are "+str(context.user_data["next_offset"]+1)+" - "+str(context.user_data["next_offset"]+10)+" records, /next for the next 10, /query_finish to stop"
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=output,
-        parse_mode="HTML"
-    )
-    return next
+            for author in paper["authors"]:
+                output+=author["name"]+"\n"
+            output+="\n\n"
+
+        output+="here are "+str(context.user_data["next_offset"]+1)+" - "+str(context.user_data["next_offset"]+10)+" records, /next for the next 10, /query_finish to stop"
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=output,
+            parse_mode="HTML"
+        )
+        return next
 
 async def next(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["next_offset"]+=10
@@ -233,7 +249,6 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
         text="Sorry, I didn't understand that command.")
-
 
 
 
