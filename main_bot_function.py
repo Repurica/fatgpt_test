@@ -8,7 +8,8 @@ import os
 import shutil
 import requests
 
-from query_gpt_ai import summarisation
+from backend_api import summarisation
+
 
 #log
 # logging.basicConfig(
@@ -47,7 +48,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #     photo="image1.webp")
 
 #reply inline query
-# async def inline_caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# async def inline_caps(update: Update, `context: ContextTypes.DEFAULT_TYPE):
 #     query = update.inline_query.query
 #     print(query)
 #     if not query:
