@@ -30,7 +30,18 @@ def summarisation(file_directory):
 
     return response["choices"][0]["message"]["content"]
 
+  def summarize_text2_topic(text):
+    messages = [
+      {"role": "system", "content": "Provide a keywords for the paragraph. Return in JSON format."}, 
+      {"role": "user", "content": text}
+    ]
 
+    response = openai.ChatCompletion.create(
+      model="gpt-3.5-turbo",
+      messages=messages
+    )
+
+    return response["choices"][0]["message"]["content"]
   pdf_file = open(file_directory, 'rb')
   pdf_reader = PyPDF2.PdfReader(pdf_file)
 
@@ -58,10 +69,18 @@ def summarisation(file_directory):
   all_summaries = ". ".join(page_summaries)
 
   final_summary = summarize_text(all_summaries)  
+  topics = summarize_text2_topic(final_summary)
 
   print()
   print("Final Summary:")
   print(final_summary)
+
+  print("Topics Involved:")
+  print(topics)
+
+
+
+
   pdf_file.close()
 
   return final_summary

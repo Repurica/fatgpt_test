@@ -149,6 +149,7 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     URL ="http://api.semanticscholar.org/graph/v1/paper/search"
     # offset: skip first 10 result, limit: limit the number of records output, fields
+    # query':context.user_data["query"] --> the actual query from the next message
     PARAMS = {'query':context.user_data["query"],"offset":context.user_data["next_offset"],"fields":"title,authors"}
     r=requests.get(url=URL, params=PARAMS)
     data=r.json()
