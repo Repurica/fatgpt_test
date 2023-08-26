@@ -117,25 +117,25 @@ def summarisation(file_directory):
 
 
 
-def recommended_readings(topic: str):
-    url = "https://api.semanticscholar.org/graph/v1/paper/search?"
-    # params = {'query':topic, 'fields':"title,year,authors,externalIds", "limit": 10}
-    params = {'query':topic, 'fields':"externalIds", "limit": 10}
-    response = requests.get(url, params)
-    recs = []
-    res_dict = response.json()
-    data_dict = res_dict["data"] # This is array of dicts with all info of results
-    # print(data_dict)
-    for item in data_dict:
-        for key in item :
-            #print(key)
-            if (key == "externalIds"):
-                if (item[key].get("DOI")):
-                    # print(item[key])
-                    doi = item[key]["DOI"]
-                    recs.append(doi)
+# def recommended_readings(topic: str):
+#     url = "https://api.semanticscholar.org/graph/v1/paper/search?"
+#     # params = {'query':topic, 'fields':"title,year,authors,externalIds", "limit": 10}
+#     params = {'query':topic, 'fields':"externalIds", "limit": 10}
+#     response = requests.get(url, params)
+#     recs = []
+#     res_dict = response.json()
+#     data_dict = res_dict["data"] # This is array of dicts with all info of results
+#     # print(data_dict)
+#     for item in data_dict:
+#         for key in item :
+#             #print(key)
+#             if (key == "externalIds"):
+#                 if (item[key].get("DOI")):
+#                     # print(item[key])
+#                     doi = item[key]["DOI"]
+#                     recs.append(doi)
 
-    return recs
+#     return recs
 
 scopusKey = "17abfb9454e405a8ebb7b7e73b1c7695"
 
@@ -162,6 +162,61 @@ def scpous(topic : str):
 
     # print(type(res))
     return recs
+
+def OpenAlexAbstract(doi : str):
+    url = "https://api.openalex.org/works/"
+    url += doi
+
+    response = requests.get(url)
+    res_dict = response.json()
+
+    # Returns an inverted index/ dict with key of a word that appears with values index of where it appears
+    abi = res_dict["abstract_inverted_index"] 
+
+    #Using this to store the max value for each key which in this case is the word
+    len_index = []  
+
+    # Add the largest number from each key value into len_index first
+    for indices in abi.values():
+        len_index.append(max(indices))
+
+    #Find the max value among all the max values in each list
+    max_index = max(len_index) 
+
+
+    # Create a list to store the words in their respective positions
+    sentence = [''] * (max_index + 1)
+
+    # Send each word back into its original position in the sentence
+    for word, indices in abi.items():
+        for index in indices:
+            sentence[index] = word
+
+    # Convert the list to a string
+    reconstructed_sentence = ' '.join(sentence)
+
+    return reconstructed_sentence
+
+def OpenAlexRelated(topic : str):
+        #Used for looking for actual concepts reltaed to the search'
+        url = "https://api.openalex.org/concepts?" 
+        params = {'search': topic}
+        response = requests.get(url, params)
+        related = []
+        res_dict = response.json()
+
+        
+        res = res_dict["results"]
+        
+
+        for concept in res:
+            if (len(related) < 3):
+                related.append(concept["display_name"])
+                
+        
+        return related
+
+
 
 # print(json.dumps(recommended_readings("climate change"), indent=4))
 # print(recommended_readings("climate change"))
