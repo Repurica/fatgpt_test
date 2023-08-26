@@ -259,9 +259,14 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         username=update.callback_query.from_user.username
     print(query,2222222222)
+
+
     if(os.path.exists(username)):
         shutil.rmtree(username)
     os.mkdir(username)
+
+
+    
     function={"Semantic Scholar":"SemanticScholar","Scopus":"scopus"}
     if "engine" not in context.user_data:
         context.user_data["engine"]="Semantic Scholar"
@@ -286,13 +291,21 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     for article in result:
         if article[0]+".pdf" in file_list:
-            summary,keywords_dict=backend_api.summarisation(os.path.join(directory, filename))
-            output+="<b>"+article[0]+"</b>\n\n"+summary+"\n\nkeywords:\n"
-            for keyword in keywords_dict:
-                output+=keyword+", "
-            output[:-2]+"\n\n\n"
+            print(article[0]+".pdf 66666")
+            summary,keywords_dict=backend_api.summarisation(os.path.join(directory, article[0]+".pdf"))
+            if summary=="":
+                output+="<b>"+article[0]+"</b>\n\nFILE NOT FOUND!!!\n\n\n"
+            else:
+
+                output+="<b>"+article[0]+"</b>\n\n"+summary+"\n\nkeywords:\n"
+                print(keywords_dict["keywords"])
+                for keyword in keywords_dict["keywords"]:
+                    output+=keyword+", "
+                # for i in keywords_dict["keywords"]:
+                #     keywords_str+=i+", "
+                output=output[:-2]+"\n\n\n"
         else:
-            output+="<b>"+article[0]+"</b>\n FILE NOT FOUND!!!\n\n\n"
+            output+="<b>"+article[0]+"</b>\n\nFILE NOT FOUND!!!\n\n\n"
 
 
     
@@ -304,7 +317,6 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard=[[]]
     concepts=backend_api.OpenAlexRelated(query)
     for each in concepts:
-        print(each,1111)
         keyboard[0].append(InlineKeyboardButton(each, callback_data=each))
             
  

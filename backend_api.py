@@ -14,9 +14,12 @@ import os
 # load_dotenv()
 
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
-scopusKey = os.getenv("SCOPUS_API_KEY")
-primoAPI = os.getenv("PRIMO_API_KEY")
+# openai.api_key = os.getenv("OPENAI_API_KEY")
+# scopusKey = os.getenv("SCOPUS_API_KEY")
+# primoAPI = os.getenv("PRIMO_API_KEY")
+openai.api_key = "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"
+scopusKey = "17abfb9454e405a8ebb7b7e73b1c7695"
+primoAPI = "l8xxce68e59740b24a3e96d67f05ab25da03"
 
 
 UnpywallCredentials("nick.haupka@gmail.com")
@@ -90,10 +93,12 @@ def summarisation(file_directory):
             temperature=0.8,
         )
         return response.summary
-
-    pdf_file = open(file_directory, "rb")
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
-
+    try:
+      pdf_file = open(file_directory, "rb")
+      pdf_reader = PyPDF2.PdfReader(pdf_file)
+      
+    except:
+      return "",""
     pages = len(pdf_reader.pages)
     print(f"Total Pages: {pages}")
 
@@ -194,49 +199,34 @@ def context(message, chat_context):
 #     return recs
 
 
-def SemanticScholar(topic : str):
+def SemanticScholar(topic: str):
     # offset: skip first 10 result, limit: limit the number of records output, fields
     # query':context.user_data["query"] --> the actual query from the next message
-    url ="http://api.semanticscholar.org/graph/v1/paper/search"
-    params = {'query': topic, 'fields' : "title,externalIds,isOpenAccess"}
+    url = "http://api.semanticscholar.org/graph/v1/paper/search"
+    params = {"query": topic, "fields": "title,externalIds,isOpenAccess"}
     recs = []
     response = requests.get(url, params)
     res_dict = response.json()
-    data_dict = res_dict["data"] # This is array of dicts with all info of results
+    data_dict = res_dict["data"]  # This is array of dicts with all info of results
     # print(res_dict["total"])
-    #print(data_dict)
+    # print(data_dict)
     # Check if there's any results
-    if (res_dict["total"]>0):
-
-
-        # for item in data_dict:
-
-        #     for key in item :
-        #         # print(key)
-        #         founddoi
-        #         if (key == "externalIds"):
-        #             if (item[key].get("DOI")):
-
-        #                 doi = item[key]["DOI"]
-        #     title = item["title"]
-
-        #     recs.append([title,doi])
-
-        # return recs
-
+    if res_dict["total"] > 0:
         for item in data_dict:
-            # print(item)
-            if ("DOI" in item["externalIds"] and item["isOpenAccess"] == True):
-                title = item["title"]
-                doi = item["externalIds"]["DOI"]
-                recs.append([title, doi])
-        
-        return recs
-    
+            for key in item:
+                # print(key)
+                if key == "externalIds":
+                    if item[key].get("DOI"):
+                        doi = item[key]["DOI"]
+            title = item["title"]
 
+            recs.append([title, doi])
+
+        return recs
     else:
-        text="Sorry, we were unable to find any articles relating to " + topic + "."
+        text = "Sorry, we were unable to find any articles relating to " + topic + "."
         return text
+
 
 def scopus(topic: str):
     url = "https://api.elsevier.com/content/search/scopus?"
