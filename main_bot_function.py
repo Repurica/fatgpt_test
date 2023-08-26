@@ -247,6 +247,7 @@ async def idea(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("here")
     if("query" not in context.user_data):
         context.user_data["query"]=update.message.text
     # offset: skip first 10 result, limit: limit the number of records output, fields
@@ -273,7 +274,7 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
             output+="<b>"+paper["title"]+"</b>\n\nPaper ID: "+paper["paperId"]+"\n\n"
 
         #jm processing code
-        output+="here are "+str(context.user_data["next_offset"]+1)+" - "+str(context.user_data["next_offset"]+10)+" records, /query_finish to stop"
+        output+="here are your results, /query_finish to stop"
         # await context.bot.send_message(
         #     chat_id=update.effective_chat.id,
         #     text=output,
@@ -355,8 +356,7 @@ if __name__ == '__main__':
     )
     application.add_handler(chat_handler)
 
-    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
-    application.add_handler(echo_handler)
+
 # next:[CommandHandler("next", next)]
     query_handler=ConversationHandler(
         entry_points=[CommandHandler('idea', idea)],
@@ -389,7 +389,8 @@ if __name__ == '__main__':
 
 
     # must come after everything
-
+    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
+    application.add_handler(echo_handler)
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     application.add_handler(unknown_handler)
 
