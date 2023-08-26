@@ -7,11 +7,14 @@ import requests
 import json
 from unpywall import Unpywall
 from unpywall.utils import UnpywallCredentials
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
-# co = cohere.Client('L3YxAjptxoiLXbhbiSh9C2yuB7mCIRQCLoMIcxqa') # This is your trial API key
-openai.api_key = "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"
-scopusKey = "17abfb9454e405a8ebb7b7e73b1c7695"
-primoAPI = "l8xxce68e59740b24a3e96d67f05ab25da03"
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+scopusKey = os.getenv("SCOPUS_API_KEY")
+primoAPI = os.getenv("PRIMO_API_KEY")
 
 
 UnpywallCredentials('nick.haupka@gmail.com')
@@ -291,8 +294,6 @@ def OpenAlexRelated(topic : str):
                 
         
         return related
-
-# print(OpenAlexRelated('Cloud Computing'))
 
 def CheckLibrary(titleDOI : list):
     # url = "https://api-ap.hosted.exlibrisgroup.com/primo/v1/search?" 

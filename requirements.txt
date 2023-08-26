@@ -6,3 +6,4 @@ pys2
 cohere
 requests
 unpywall
+python-dotenv
