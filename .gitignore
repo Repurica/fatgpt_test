@@ -2,3 +2,4 @@ __pycache__
 bchewyme
 *.pyc
 .vscode/settings.json
+.env
