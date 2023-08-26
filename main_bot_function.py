@@ -268,9 +268,6 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return keyword_button
 
-async def next(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["next_offset"]+=10
-    await query(update, context)
 
 async def keyword_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyword = update.callback_query.data
