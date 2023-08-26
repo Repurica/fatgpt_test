@@ -247,12 +247,21 @@ async def idea(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("here")
-    username=update.message.from_user.username
 
+    if "query" not in context.user_data:
+        context.user_data["query"]=update.message.text
+        query=update.message.text
+    else:
+        query=context.user_data["query"]
+
+    try:
+        username=update.message.from_user.username
+    except:
+        username=update.callback_query.from_user.username
+    print(query,2222222222)
     if(os.path.exists(username)):
         shutil.rmtree(username)
     os.mkdir(username)
-    query=update.message.text
     function={"Semantic Scholar":"SemanticScholar","Scopus":"scopus"}
     if "engine" not in context.user_data:
         context.user_data["engine"]="Semantic Scholar"
@@ -292,17 +301,15 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
-    keyboard = [
-        [
-            InlineKeyboardButton("keyword1", callback_data="AI"),
-            InlineKeyboardButton("keyword2", callback_data="MCU"),
-            InlineKeyboardButton("keyword3", callback_data="SPIDER")
-        ]
-    ]
+    keyboard=[[]]
+    concepts=backend_api.OpenAlexRelated(query)
+    for each in concepts:
+        print(each,1111)
+        keyboard[0].append(InlineKeyboardButton(each, callback_data=each))
+            
+ 
     reply_markup = InlineKeyboardMarkup(keyboard)
-
+    del context.user_data["query"]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="retreive result from "+context.user_data["engine"]+"\n\n\n\n"+output+"\n\n"+"continue type to query, or /query_finish to end",
