@@ -8,10 +8,10 @@ import requests
 import json
 from unpywall import Unpywall
 from unpywall.utils import UnpywallCredentials
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# load_dotenv()
 
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -27,6 +27,8 @@ def CheckOpenAccess(titleDOI, username):
     count=0
     for book in titleDOI:
         try:
+            count+=1
+            print("file ",count,":   "+book[1])
             response = requests.get(Unpywall.get_pdf_link(doi=book[1]))
             filename = book[0] + ".pdf"
             with open(username + "/" + filename, "wb") as f:
