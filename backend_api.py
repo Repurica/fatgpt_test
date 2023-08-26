@@ -114,7 +114,35 @@ def summarisation(file_directory):
 
   return final_summary,json.loads(topics)
 
+def context(message, chat_context):
+    if not chat_context:
+        chat_context = {
+            "messages": [
+                {"role": "system", "content": "You are a ChatBot that intakes a user's broad academic or professional interest, refines it into a focused area of study or project topic, and then provides personalized resources and a learning pathway tailored to their unique goals. For instance, if a user mentions they're a Biology student but wishes to delve into data analytics, the model will offer resources on bioinformatics and a suggested learning journey"},
+                {"role": "user", "content": str(message)}
+            ]
+        }
+    else:
+        chat_context["messages"].append({"role": "user", "content": str(message)})
 
+    # write code to do some basic logging for debugging
+    print('\n')
+    print(chat_context)
+    print('\n')
+    response = openai.ChatCompletion.create(
+        model="gpt-4-0613",
+        messages=chat_context['messages'],
+        functions=chat_context['functions']
+    )
+
+    response_message = response["choices"][0]["message"]["content"]
+    if not response_message:
+        response_message = "Our brains are on fire now. Please try again later."
+
+    # Append response to context
+    chat_context["messages"].append({"role": "assistant", "content": str(response_message)})
+
+    return response_message, chat_context
 
 
 def recommended_readings(topic: str):

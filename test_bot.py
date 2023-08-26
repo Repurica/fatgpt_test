@@ -2,6 +2,7 @@ import os
 import logging
 import openai
 import requests
+import json
 from telegram import Update
 from telegram.ext import (
     filters,
@@ -12,9 +13,9 @@ from telegram.ext import (
 )
 
 # Set logger
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+# logging.basicConfig(
+#     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+# )
 
 # Define OpenAI API key
 openai.api_key = "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"
@@ -30,7 +31,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Generate response
 chat_context = {}
 
-def get_weather(location):
+def get_current_weather(location):
     api_key = "084225f5b4f152362918c7299365548a" 
     url = f"https://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}"
 
@@ -52,56 +53,64 @@ async def generate_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 {"role": "user", "content": str(message)}
             ],
             "functions": [
-                {
-                "name": "get_weather",
-                "description": "Get the current weather in a given location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "The city and state, e.g. San Francisco, CA"
-                    },
-                    "unit": {
-                        "type": "string",
-                        "enum": ["celsius", "fahrenheit"]
+                    {
+                        "name": "get_current_weather",
+                        "description": "Get the current weather in a given location",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                            "location": {
+                                "type": "string",
+                                "description": "The city and state, e.g. San Francisco, CA"
+                            },
+                            },
+                            "required": ["location"]
+                        },
                     }
-                    },
-                    "required": ["location"]
-                }
-                }
-        ]
+            ]
         }
     else:
         chat_context["messages"].append({"role": "user", "content": str(message)})
 
-    # Call OpenAI API
-    print('\n\n')
-    # print(chat_context['functions'])
-    print(' CALLING OPENAI ')
-    print('\n\n')
-
-    print('Chat context messages:', chat_context['messages'])
-    print('\n\n')  
+    # write code to do some basic logging for debugging
+    print('\n')
+    print(chat_context)
+    print('\n')
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-4-0613",
         messages=chat_context['messages'],
         functions=chat_context['functions']
     )
-    print('Response:', response)
-    response_message = response["choices"][0]["message"]
-    # response_message = response
-    # print("Response:", response_message)
-    print('\n\n')
-    # print(chat_context['functions'])
-    print(' CALLING OPENAI END')
-    print('\n\n')
 
+    response_message = response["choices"][0]["message"]["content"]
     if not response_message:
-        response_message = "Hmm, I don't have a response for that"
+        response_message = "Our brains are on fire now. Please try again later."
 
     # Append response to context
     chat_context["messages"].append({"role": "assistant", "content": str(response_message)})
+
+    # if response_message.get("function_call"):
+    #     available_functions = {
+    #         "get_current_weather": get_current_weather,
+    #     }
+    #     function_name = response_message["function_call"]["name"]
+    #     function_to_call = available_functions[function_name]
+    #     function_args = json.loads(response_message["function_call"]["arguments"])
+    #     function_response = function_to_call(
+    #         location=function_args.get("location")
+    #     )
+    #     chat_context["messages"].append(response_message)  # extend conversation with assistant's reply
+    #     chat_context["messages"].append(
+    #         {
+    #             "role": "function",
+    #             "name": function_name,
+    #             "content": function_response,
+    #         }
+    #     )  # extend conversation with function response
+    #     response = openai.ChatCompletion.create(
+    #         model="gpt-3.5-turbo-0613",
+    #         messages=chat_context["messages"],
+    #     )  # get a new response from GPT where it can see the function response
 
     # Send message back
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response_message)
