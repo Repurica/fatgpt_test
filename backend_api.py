@@ -3,8 +3,14 @@ import PyPDF2
 import re
 import json
 import requests
+import cohere 
 
+
+co = cohere.Client('L3YxAjptxoiLXbhbiSh9C2yuB7mCIRQCLoMIcxqa') # This is your trial API key
 openai.api_key = "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"
+
+
+
 
 def summarisation(file_directory):
   def get_page_text(page):
@@ -44,6 +50,19 @@ def summarisation(file_directory):
     )
 
     return response["choices"][0]["message"]["content"]
+  
+
+  def summarise_cohere(text):
+    response = co.summarize( 
+      text=text,
+      length='auto',
+      format='auto',
+      model='summarize-xlarge',
+      additional_command='',
+      temperature=0.8,
+  ) 
+    return response.summary
+  
   pdf_file = open(file_directory, 'rb')
   pdf_reader = PyPDF2.PdfReader(pdf_file)
 
@@ -51,6 +70,7 @@ def summarisation(file_directory):
   print(f"Total Pages: {pages}")
 
   page_summaries = []
+  page_summary_cohere = []
 
   for page_num in range(pages):
 
@@ -60,25 +80,32 @@ def summarisation(file_directory):
 
     text = get_page_text(page)
 
-    page_summary = summarize_text(text)  
+    page_summary = summarize_text(text)
+    page_ch_summary = summarise_cohere(text)  
 
     page_summaries.append(page_summary)
+    page_summary_cohere.append(page_summary_cohere)
 
     print(page_summary)
     print()
+    print(page_summary_cohere)
 
     
   all_summaries = ". ".join(page_summaries)
 
   final_summary = summarize_text(all_summaries)  
   topics = summarize_text2_topic(final_summary)
+  cohere_summary = summarise_cohere(final_summary)
 
   print()
-  print("Final Summary:")
+  print("OpenAI's Final Summary:")
   print(final_summary)
 
   print("Topics Involved:")
   print(topics)
+
+  print("Cohere's Final Summary:")
+  print(cohere_summary)
 
 
 
@@ -142,4 +169,4 @@ def scpous(topic : str):
 # scpous("Climate Change")
 # print(scpous("Covid"))
 
-print(scpous('Covid'))
+# print(scpous('Covid'))

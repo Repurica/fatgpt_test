@@ -196,7 +196,7 @@ async def query_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text="Sorry, I didn't understand that command.")
+        text="Sorry, I didn't understand that command!")
 
 
 
