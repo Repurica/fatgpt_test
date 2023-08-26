@@ -68,6 +68,24 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # application.add_handler(inline_caps_handler)
 
 
+async def engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton("Engine1", callback_data="Engine1"),
+            InlineKeyboardButton("Engine2", callback_data="Engine2"),
+            InlineKeyboardButton("Engine3", callback_data="Engine3"),
+            InlineKeyboardButton("Engine4", callback_data="Engine4"),
+            InlineKeyboardButton("Engine5", callback_data="Engine5"),
+
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text("plz select one engine", 
+                                    reply_markup=reply_markup)
+
+
+
 #receive file
 async def downloader(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -262,7 +280,8 @@ if __name__ == '__main__':
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
 
-
+    engine_handler = CommandHandler('engine', engine)
+    application.add_handler(engine_handler)
 
     query_handler=ConversationHandler(
         entry_points=[CommandHandler('idea', idea)],
