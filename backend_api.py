@@ -210,6 +210,7 @@ def SemanticSchoalr(topic : str):
 
 
 
+
 def scopus(topic : str):
     url = "https://api.elsevier.com/content/search/scopus?"
     topic += ",OPENACCESS"
@@ -222,8 +223,9 @@ def scopus(topic : str):
     #Returns a list of all results
     res = res_dict["search-results"]["entry"] 
     # print(res)
-
-    if (res_dict["search-results"] > 0):
+    # print(res_dict["search-results"]["opensearch:totalResults"])
+    
+    if (int(res_dict["search-results"]["opensearch:totalResults"])> 0):
         for book in res:
             titleDOI = []
             if (len(recs)>9):
