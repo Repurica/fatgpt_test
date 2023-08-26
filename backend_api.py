@@ -13,6 +13,8 @@ from unpywall.utils import UnpywallCredentials
 co = cohere.Client('L3YxAjptxoiLXbhbiSh9C2yuB7mCIRQCLoMIcxqa') # This is your trial API key
 openai.api_key = "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"
 
+scopusKey = "17abfb9454e405a8ebb7b7e73b1c7695"
+
 
 
 UnpywallCredentials('nick.haupka@gmail.com')
@@ -181,28 +183,30 @@ def recommended_readings(topic: str):
 
     return recs
 
-scopusKey = "17abfb9454e405a8ebb7b7e73b1c7695"
 
-def scpous(topic : str):
+
+def scopus(topic : str):
     url = "https://api.elsevier.com/content/search/scopus?"
+    topic += ",OPENACCESS"
+    
     params = {'query':topic, 'apikey':scopusKey}
     response = requests.get(url, params)
     recs = []
     res_dict = response.json()
-    res = res_dict["search-results"]["entry"] #Returns a list of all results
 
-    # print(res)
+    #Returns a list of all results
+    res = res_dict["search-results"]["entry"] 
     # print(res)
     for book in res:
-        # print(book)
         titleDOI = []
         if (len(recs)>9):
             break
         if (book.get("prism:doi") and len(recs) < 11):
             titleDOI.append(book["dc:title"])
-            # print(book["dc:title"])
-            # titleDOI.append(book["prism:doi"])
+            titleDOI.append(book["prism:doi"])
             recs.append(titleDOI)
+        
+
 
     # print(type(res))
     return recs
@@ -260,4 +264,33 @@ def OpenAlexRelated(topic : str):
         
         return related
 
-print(OpenAlexRelated('Cloud Computing'))
+# print(OpenAlexRelated('Cloud Computing'))
+
+def CheckLibrary(titleDOI : list):
+    # url = "https://api-ap.hosted.exlibrisgroup.com/primo/v1/search?" 
+    found=[]
+    notFound = []
+    for book in titleDOI:
+        
+        searchTerm = book[1]
+        # params = {'vid': "65SMU_INST%3ASMU_NUI", 'tab': "Everything", 'scope': "Everything", 'q': searchTerm, "offset": 0, 'limit':10, 'pcAvailability': 'true', 'INST':"65SMU_INST"}
+        # params = {'vid': "65SMU_INST%3ASMU_NUI", 'tab': "Everything", 'scope': "Everything", 'q': searchTerm, 'offset': 0, 'limit':10, 'INST':"65SMU_INST", 'apikey': primoAPI}
+        url = "https://api-ap.hosted.exlibrisgroup.com/primo/v1/search?vid=65SMU_INST%3ASMU_NUI&tab=Everything&scope=Everything&q=any,contains," + searchTerm
+        url2 = "&lang=eng&offset=0&limit=10&sort=rank&pcAvailability=true&getMore=0&conVoc=true&inst=65SMU_INST&skipDelivery=true&disableSplitFacets=true&apikey=l8xxce68e59740b24a3e96d67f05ab25da03"
+        response = requests.get(url + url2)
+        res_dict = response.json()
+        
+        res = res_dict["info"]
+        
+
+        if (res["total"] > 0):
+            found.append([book[0], book[1]])
+        else:
+            print
+            notFound.append([book[0], book[1]])
+
+    return (found, notFound)
+
+
+
+
