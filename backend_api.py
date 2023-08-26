@@ -12,7 +12,6 @@ from unpywall.utils import UnpywallCredentials
 
 co = cohere.Client('L3YxAjptxoiLXbhbiSh9C2yuB7mCIRQCLoMIcxqa') # This is your trial API key
 openai.api_key = "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"
-
 scopusKey = "17abfb9454e405a8ebb7b7e73b1c7695"
 
 
