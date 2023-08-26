@@ -84,7 +84,15 @@ async def engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("plz select one engine", 
                                     reply_markup=reply_markup)
 
+async def engine_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
+    selection = update.callback_query.data
 
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=selection
+    )
+    await update.callback_query.answer()
 
 #receive file
 async def downloader(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -282,6 +290,11 @@ if __name__ == '__main__':
 
     engine_handler = CommandHandler('engine', engine)
     application.add_handler(engine_handler)
+
+    engine_selection_handler=CallbackQueryHandler(engine_selection)
+    application.add_handler(engine_selection_handler)
+
+
 
     query_handler=ConversationHandler(
         entry_points=[CommandHandler('idea', idea)],
