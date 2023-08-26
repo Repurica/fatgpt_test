@@ -21,7 +21,7 @@ import backend_api
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Welcome to F.A.T GPT-3 bot, Please use /engine to select an engine, then /chat to start a conversation, or /idea to start a research, or /upload to upload a file for summarisation."
+        text="Welcome to F.A.T GPT bot, Please use /engine to select an engine, then /chat to start a conversation, or /idea to start a research, or /upload to upload a file for summarisation."
     )
 
 
