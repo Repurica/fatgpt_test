@@ -21,7 +21,7 @@ import backend_api
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Welcome to F.A.T GPT-3 bot, Please use /engine to select an engine, then /chat to start a conversation, or /idea to start a research, or /upload to upload a file for summarisation"
+        text="Welcome to F.A.T GPT-3 bot, Please use /engine to select an engine, then /chat to start a conversation, or /idea to start a research, or /upload to upload a file for summarisation."
     )
 
 
@@ -39,7 +39,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def chat_with_gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text="hi plz enter message"
+        text="You are now talking with F.A.T GPT-3 bot, enter text to start chat, or /refresh_gpt to clear the convo!"
         )
     return chat
     # text=update.message.text
@@ -87,7 +87,7 @@ async def refresh_gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("context")
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text="conversation cleared! start a new one with /chat"
+        text="You are now talking with F.A.T GPT-3 bot, enter text to start chat, or /refresh_gpt to clear the convo!"
         )
     return ConversationHandler.END
 
@@ -112,7 +112,7 @@ async def engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text("plz select one engine", 
+    await update.message.reply_text("Please choose an engine:", 
                                     reply_markup=reply_markup)
 
 async def engine_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -173,7 +173,7 @@ async def upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="finished file uploading let me process"
+        text="F.A.T GPT bot is processing your files, please wait..."
     )
     directory=os.getcwd()+"/"+update.callback_query.from_user.username
     
@@ -201,7 +201,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="cancelled plz use /upload again"
+        text="Upload Cancelled!"
     )
     return ConversationHandler.END
 
