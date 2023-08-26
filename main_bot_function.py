@@ -25,21 +25,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# to check if bot running
+
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if "context" not in context.user_data:
-
-        reply,chat_context=backend_api.context(update.message.text,"")
-    else:
-        reply,chat_context=backend_api.context(update.message.text,context.user_data["context"])
-
-
-    context.user_data["context"]=chat_context
+    text=update.message.text
+    #reply with text
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=reply
+        text=text
         )
 
+
+# to check if bot running
+async def chat_with_gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text="hi plz enter message"
+        )
+    return chat
     # text=update.message.text
     # #reply with text
     # await context.bot.send_message(
@@ -80,6 +82,25 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # inline_caps_handler = InlineQueryHandler(inline_caps)
     # application.add_handler(inline_caps_handler)
 
+
+async def refresh_gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.pop("context")
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text="conversation cleared! start a new one with /chat"
+        )
+
+async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if "context" not in context.user_data:
+        reply,chat_context=backend_api.context(update.message.text,"")
+    else:
+        reply,chat_context=backend_api.context(update.message.text,context.user_data["context"])
+
+    context.user_data["context"]=chat_context
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text=reply+"\n\n\nenter text to continue chat, or /refresh_gpt to clear the convo!"
+        )
 
 async def engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -327,7 +348,12 @@ if __name__ == '__main__':
     engine_handler = CommandHandler('engine', engine)
     application.add_handler(engine_handler)
 
-
+    chat_handler=ConversationHandler(
+        entry_points=[CommandHandler("chat",chat_with_gpt)],
+        states={chat:[MessageHandler(filters.TEXT & (~filters.COMMAND), chat)]},
+        fallbacks=[CommandHandler("refresh_gpt",refresh_gpt)]
+    )
+    application.add_handler(chat_handler)
 
     echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
     application.add_handler(echo_handler)
