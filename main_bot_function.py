@@ -247,12 +247,13 @@ async def idea(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("here")
+    username=update.message.from_user.username
+
     if(os.path.exists(username)):
         shutil.rmtree(username)
     os.mkdir(username)
     query=update.message.text
     function={"Semantic Scholar":"SemanticScholar","Scopus":"scopus"}
-    username=update.message.from_user.username
     if "engine" not in context.user_data:
         context.user_data["engine"]="Semantic Scholar"
         result=eval("backend_api.SemanticScholar(query)")
