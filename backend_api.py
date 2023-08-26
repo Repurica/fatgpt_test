@@ -11,7 +11,8 @@ from unpywall.utils import UnpywallCredentials
 
 
 co = cohere.Client('L3YxAjptxoiLXbhbiSh9C2yuB7mCIRQCLoMIcxqa') # This is your trial API key
-openai.api_key = "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"
+openai.api_key = "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"
+
 
 
 UnpywallCredentials('nick.haupka@gmail.com')
@@ -147,8 +148,7 @@ def context(message, chat_context):
     print('\n')
     response = openai.ChatCompletion.create(
         model="gpt-4-0613",
-        messages=chat_context['messages'],
-        functions=chat_context['functions']
+        messages=chat_context['messages']
     )
 
     response_message = response["choices"][0]["message"]["content"]

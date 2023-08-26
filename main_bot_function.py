@@ -8,7 +8,7 @@ import os
 import shutil
 import requests
 
-from backend_api import summarisation
+import backend_api
 
 
 #log
@@ -27,12 +27,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # to check if bot running
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text=update.message.text
-    #reply with text
+    if "context" not in context.user_data:
+
+        reply,chat_context=backend_api.context(update.message.text,"")
+    else:
+        reply,chat_context=backend_api.context(update.message.text,context.user_data["context"])
+
+
+    context.user_data["context"]=chat_context
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=context.user_data["engine"]
+        text=reply
         )
+
+    # text=update.message.text
+    # #reply with text
+    # await context.bot.send_message(
+    #     chat_id=update.effective_chat.id, 
+    #     text=context.user_data["engine"]
+    #     )
 
     #reply with file
     # await context.bot.send_document(
@@ -144,7 +157,7 @@ async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     directory=os.getcwd()+"/"+update.callback_query.from_user.username
     
     for filename in os.listdir(directory):
-        summary,keywords_dict=summarisation(os.path.join(directory, filename))
+        summary,keywords_dict=backend_api.summarisation(os.path.join(directory, filename))
         keywords_str=""
 
         for i in keywords_dict["keywords"]:
@@ -218,7 +231,7 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # offset: skip first 10 result, limit: limit the number of records output, fields
     # query':context.user_data["query"] --> the actual query from the next message
     URL ="http://api.semanticscholar.org/graph/v1/paper/search"
-    PARAMS = {'query':context.user_data["query"],"offset":context.user_data["next_offset"],"fields":"title"}
+    PARAMS = {'query':context.user_data["query"],"offset":context.user_data["next_offset"],"fields":"title","isOpenAccess":"True"}
     r=requests.get(url=URL, params=PARAMS)
     data=r.json()
 
@@ -238,7 +251,7 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for paper in data["data"]:
             output+="<b>"+paper["title"]+"</b>\n\nPaper ID: "+paper["paperId"]+"\n\n"
 
-
+        #jm processing code
         output+="here are "+str(context.user_data["next_offset"]+1)+" - "+str(context.user_data["next_offset"]+10)+" records, /query_finish to stop"
         # await context.bot.send_message(
         #     chat_id=update.effective_chat.id,
@@ -316,7 +329,8 @@ if __name__ == '__main__':
 
 
 
-
+    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
+    application.add_handler(echo_handler)
 # next:[CommandHandler("next", next)]
     query_handler=ConversationHandler(
         entry_points=[CommandHandler('idea', idea)],
@@ -325,6 +339,7 @@ if __name__ == '__main__':
                 keyword_button:[CallbackQueryHandler(keyword_button)]},
         fallbacks=[CommandHandler('query_finish', query_finish)])
     application.add_handler(query_handler)
+ 
  
     # use /upload to start an upload, then upload file as you like, 
     # choose /cancel to remove folders,
@@ -347,9 +362,8 @@ if __name__ == '__main__':
     application.add_handler(engine_selection_handler)
 
 
-    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
-    application.add_handler(echo_handler)
     # must come after everything
+
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     application.add_handler(unknown_handler)
 
