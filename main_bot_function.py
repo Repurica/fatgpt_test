@@ -248,13 +248,16 @@ async def idea(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("here")
     query=update.message.text
-    function=[""]
-    print(eval("backend_api.scopus(query)"))
-
-    # result=backend_api.scopus(query)
-    # output=""
-    # for article in result:
-    #     output+=article[0]
+    function={"Semantic Scholar":"SemanticScholar","Scopus":"scopus"}
+    if "engine" not in context.user_data:
+        context.user_data["engine"]="Semantic Scholar"
+        result=eval("backend_api.SemanticScholar(query)")
+    else:
+        engine=function[context.user_data['engine']]
+        result=eval("backend_api."+engine+"(query)")
+    output=""
+    for article in result:
+        output+="<b>"+article[0]+'</b>\n\n\n'
     keyboard = [
         [
             InlineKeyboardButton("keyword1", callback_data="AI"),
@@ -263,12 +266,10 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    # await update.message.reply_text(
-    #     "received, when finish enter /finish, cancel enter /cancel:",
-    #     reply_markup=reply_markup)
+
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="done",
+        text="retreive result from "+context.user_data["engine"]+"\n\n\n\n"+output+"\n\n"+"continue type to query, or /query_finish to end",
         parse_mode="HTML",
         reply_markup=reply_markup
     )
@@ -287,8 +288,6 @@ async def keyword_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def query_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    del context.user_data["next_offset"]
-    del context.user_data["query"]
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
