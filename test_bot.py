@@ -49,7 +49,7 @@ async def generate_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_context = {
             "messages": [
                 {"role": "system", "content": "You are a helpful assistant"},
-                {"role": "user", "content": message}
+                {"role": "user", "content": str(message)}
             ],
             "functions": [
                 {
@@ -73,21 +73,25 @@ async def generate_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
         }
     else:
-        chat_context["messages"].append({"role": "user", "content": message})
+        chat_context["messages"].append({"role": "user", "content": str(message)})
 
     # Call OpenAI API
     print('\n\n')
     # print(chat_context['functions'])
     print(' CALLING OPENAI ')
     print('\n\n')
+
+    print('Chat context messages:', chat_context['messages'])
+    print('\n\n')  
     response = openai.ChatCompletion.create(
         model="gpt-4",
         messages=chat_context['messages'],
         functions=chat_context['functions']
     )
+    print('Response:', response)
     response_message = response["choices"][0]["message"]
     # response_message = response
-    print("Response:", response_message)
+    # print("Response:", response_message)
     print('\n\n')
     # print(chat_context['functions'])
     print(' CALLING OPENAI END')
@@ -97,7 +101,7 @@ async def generate_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response_message = "Hmm, I don't have a response for that"
 
     # Append response to context
-    chat_context["messages"].append({"role": "assistant", "content": response_message})
+    chat_context["messages"].append({"role": "assistant", "content": str(response_message)})
 
     # Send message back
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response_message)
