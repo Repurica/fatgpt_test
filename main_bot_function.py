@@ -298,7 +298,6 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="HTML",
             reply_markup=reply_markup
         )
-        return keyword_button
 
 
 async def keyword_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -325,7 +324,11 @@ async def query_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
+async def reject_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="plz /query_finish before using another command!"
+    )
 
 
 #wrap up
@@ -343,11 +346,9 @@ if __name__ == '__main__':
     #load bot handler 
 
 
-    start_handler = CommandHandler('start', start)
-    application.add_handler(start_handler)
 
-    engine_handler = CommandHandler('engine', engine)
-    application.add_handler(engine_handler)
+
+
 
     chat_handler=ConversationHandler(
         entry_points=[CommandHandler("chat",chat_with_gpt)],
@@ -360,9 +361,12 @@ if __name__ == '__main__':
 # next:[CommandHandler("next", next)]
     query_handler=ConversationHandler(
         entry_points=[CommandHandler('idea', idea)],
-        states={query:[MessageHandler(filters.TEXT & (~filters.COMMAND), query)],
+        states={query:[MessageHandler(filters.TEXT & (~filters.COMMAND), query),
+                       CallbackQueryHandler(keyword_button),
+                       CommandHandler('query_finish', query_finish),
+                       MessageHandler(filters.TEXT & filters.COMMAND,reject_command)],
                 #next:[CommandHandler("next", next)],
-                keyword_button:[CallbackQueryHandler(keyword_button)]},
+              },
         fallbacks=[CommandHandler('query_finish', query_finish)])
     application.add_handler(query_handler)
  
@@ -380,13 +384,17 @@ if __name__ == '__main__':
     #     fallbacks=[CommandHandler('finish', finish),CommandHandler('cancel', cancel)])
     application.add_handler(file_reciever_handler)
 
+    start_handler = CommandHandler('start', start)
+    application.add_handler(start_handler)
+
     # must come after the file_reciever_handler!!!
     send_file_without_upload_cmd_handler=MessageHandler(filters.Document.ALL, send_file_without_upload_cmd)
     application.add_handler(send_file_without_upload_cmd_handler)
 
     engine_selection_handler=CallbackQueryHandler(engine_selection)
     application.add_handler(engine_selection_handler)
-
+    engine_handler = CommandHandler('engine', engine)
+    application.add_handler(engine_handler)
 
     # must come after everything
     echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
