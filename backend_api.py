@@ -4,7 +4,7 @@ import re
 import json
 import requests
 import cohere 
-
+import json
 
 co = cohere.Client('L3YxAjptxoiLXbhbiSh9C2yuB7mCIRQCLoMIcxqa') # This is your trial API key
 openai.api_key = "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"
@@ -112,7 +112,7 @@ def summarisation(file_directory):
 
   pdf_file.close()
 
-  return final_summary
+  return final_summary,json.loads(topics)
 
 
 

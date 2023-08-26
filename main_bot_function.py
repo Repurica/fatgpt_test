@@ -1,8 +1,8 @@
 
 import logging
 import telegram
-from telegram import Update,InlineQueryResultArticle, InputTextMessageContent
-from telegram.ext import ConversationHandler,ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, InlineQueryHandler
+from telegram import InlineKeyboardMarkup,InlineKeyboardButton,Update,InlineQueryResultArticle, InputTextMessageContent
+from telegram.ext import CallbackQueryHandler, ConversationHandler,ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, InlineQueryHandler
 import pathlib
 import os
 import shutil
@@ -31,7 +31,8 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #reply with text
     await context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text=text)
+        text=context.user_data["engine"]
+        )
 
     #reply with file
     # await context.bot.send_document(
@@ -67,6 +68,30 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # application.add_handler(inline_caps_handler)
 
 
+async def engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton("Engine1", callback_data="Engine1"),
+            InlineKeyboardButton("Engine2", callback_data="Engine2"),
+            InlineKeyboardButton("Engine3", callback_data="Engine3")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text("plz select one engine", 
+                                    reply_markup=reply_markup)
+
+async def engine_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
+    selection = update.callback_query.data
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=selection
+    )
+    context.user_data["engine"]=selection
+    await update.callback_query.answer()
+
+
 #receive file
 async def downloader(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -75,10 +100,23 @@ async def downloader(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     folder_name=update.message.from_user.username
 
+    
+    
+    keyboard = [
+        [
+            InlineKeyboardButton("Finish", callback_data="Finish"),
+            InlineKeyboardButton("Cancel", callback_data="Cancel"),
+        ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text("received, when finish enter /finish, cancel enter /cancel:", reply_markup=reply_markup)
+ 
     await file.download_to_drive(folder_name+"/"+update.message.document.file_name)
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, 
-        text="received, when finish enter /finish, cancel enter /cancel")
+    # await context.bot.send_message(
+    #     chat_id=update.effective_chat.id, 
+    #     text="received, when finish enter /finish, cancel enter /cancel")
 
 #init upload
 async def upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -94,17 +132,27 @@ async def upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return downloader
 #end conversation
+
+
+
+
 async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="finished file uploading let me process"
     )
-    directory=os.getcwd()+"/"+update.message.from_user.username
+    directory=os.getcwd()+"/"+update.callback_query.from_user.username
     
     for filename in os.listdir(directory):
+        summary,keywords_dict=summarisation(os.path.join(directory, filename))
+        keywords_str=""
+
+        for i in keywords_dict["keywords"]:
+            keywords_str+=i+", "
+
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="<b>"+filename+"</b>\n\n"+summarisation(os.path.join(directory, filename))+"\n",
+            text="<b>"+filename+"</b>\n\n"+summary+"\n\n"+"<b>keywords related: </b>\n"+keywords_str[:-2],
             parse_mode="HTML"
         )
 
@@ -112,7 +160,7 @@ async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # remove the folder to cancel upload
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    folder_name=update.message.from_user.username
+    folder_name=update.callback_query.from_user.username
     
     if(os.path.exists(folder_name)):
         shutil.rmtree(folder_name)
@@ -122,6 +170,26 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text="cancelled plz use /upload again"
     )
     return ConversationHandler.END
+
+
+
+async def file_upload_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query.data
+    await update.callback_query.answer()
+    
+    if(query=="Finish"):
+       await finish(update,context)
+    elif(query=="Cancel"):
+       await cancel(update,context)
+
+
+
+
+
+
+
+
+
 
 
 # send file without /upload
@@ -147,34 +215,70 @@ async def idea(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if("query" not in context.user_data):
         context.user_data["query"]=update.message.text
-
     URL ="http://api.semanticscholar.org/graph/v1/paper/search"
     # offset: skip first 10 result, limit: limit the number of records output, fields
     # query':context.user_data["query"] --> the actual query from the next message
-    PARAMS = {'query':context.user_data["query"],"offset":context.user_data["next_offset"],"fields":"title,authors"}
+    PARAMS = {'query':context.user_data["query"],"offset":context.user_data["next_offset"],"fields":"title"}
     r=requests.get(url=URL, params=PARAMS)
     data=r.json()
-    output=""
-    print(data["data"])
-    for paper in data["data"]:
-        output+="<b>"+paper["title"]+"</b>\n\nPaper ID: "+paper["paperId"]+"\n\nAuthors:\n"
 
-        for author in paper["authors"]:
-            output+=author["name"]+"\n"
-        output+="\n\n"
 
-    output+="here are "+str(context.user_data["next_offset"]+1)+" - "+str(context.user_data["next_offset"]+10)+" records, /next for the next 10, /query_finish to stop"
+
+
+
+
+
+    if(data["total"]==0):
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="sorry no articles, try /idea and another keywords",
+            parse_mode="HTML"
+        )
+        return ConversationHandler.END
+
+    else:
+        output=""
+        for paper in data["data"]:
+            output+="<b>"+paper["title"]+"</b>\n\nPaper ID: "+paper["paperId"]+"\n\n"
+
+
+        output+="here are "+str(context.user_data["next_offset"]+1)+" - "+str(context.user_data["next_offset"]+10)+" records, /query_finish to stop"
+        # await context.bot.send_message(
+        #     chat_id=update.effective_chat.id,
+        #     text=output,
+        #     parse_mode="HTML"
+        # )
+
+        keyboard = [
+            [
+                InlineKeyboardButton("keyword1", callback_data="AI"),
+                InlineKeyboardButton("keyword2", callback_data="MCU"),
+                InlineKeyboardButton("keyword3", callback_data="SPIDER")
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        # await update.message.reply_text(
+        #     "received, when finish enter /finish, cancel enter /cancel:",
+        #     reply_markup=reply_markup)
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=output,
+            parse_mode="HTML",
+            reply_markup=reply_markup
+        )
+        return keyword_button
+
+
+async def keyword_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyword = update.callback_query.data
     await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=output,
-        parse_mode="HTML"
-    )
-    return next
-
-async def next(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["next_offset"]+=10
-    await query(update, context)
-
+            chat_id=update.effective_chat.id,
+            text="searching <b>"+keyword + "</b> plz wait...",
+            parse_mode="HTML"
+            )
+    await update.callback_query.answer()
+    context.user_data["query"]=keyword
+    await query(update,context)
 
 
 async def query_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -200,10 +304,9 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
 if __name__ == '__main__':
     #bot token
-    application = ApplicationBuilder().token('6625209100:AAHubzFHR4rpc8CNZCfPgChjWQdq3M3LHIE').build()
+    application = ApplicationBuilder().token('6144918637:AAG5gUtKOtgsz7qjygETGdCFvnVK92wdmks').build()
     
     #load bot handler 
 
@@ -211,12 +314,18 @@ if __name__ == '__main__':
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
 
+    engine_handler = CommandHandler('engine', engine)
+    application.add_handler(engine_handler)
 
 
+
+
+# next:[CommandHandler("next", next)]
     query_handler=ConversationHandler(
         entry_points=[CommandHandler('idea', idea)],
         states={query:[MessageHandler(filters.TEXT & (~filters.COMMAND), query)],
-                next:[CommandHandler("next", next)]},
+                #next:[CommandHandler("next", next)],
+                keyword_button:[CallbackQueryHandler(keyword_button)]},
         fallbacks=[CommandHandler('query_finish', query_finish)])
     application.add_handler(query_handler)
  
@@ -226,12 +335,20 @@ if __name__ == '__main__':
     file_reciever_handler=ConversationHandler(
         entry_points=[CommandHandler('upload', upload)],
         states={downloader:[MessageHandler(filters.Document.ALL, downloader)]},
-        fallbacks=[CommandHandler('finish', finish),CommandHandler('cancel', cancel)])
+        fallbacks=[CallbackQueryHandler(file_upload_button)])
+    # file_reciever_handler=ConversationHandler(
+    #     entry_points=[CommandHandler('upload', upload)],
+    #     states={downloader:[MessageHandler(filters.Document.ALL, downloader)]},
+    #     fallbacks=[CommandHandler('finish', finish),CommandHandler('cancel', cancel)])
     application.add_handler(file_reciever_handler)
 
     # must come after the file_reciever_handler!!!
     send_file_without_upload_cmd_handler=MessageHandler(filters.Document.ALL, send_file_without_upload_cmd)
     application.add_handler(send_file_without_upload_cmd_handler)
+
+    engine_selection_handler=CallbackQueryHandler(engine_selection)
+    application.add_handler(engine_selection_handler)
+
 
     echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
     application.add_handler(echo_handler)
