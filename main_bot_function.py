@@ -89,6 +89,7 @@ async def refresh_gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id, 
         text="conversation cleared! start a new one with /chat"
         )
+    return ConversationHandler.END
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if "context" not in context.user_data:
@@ -105,9 +106,8 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def engine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [
-            InlineKeyboardButton("Engine1", callback_data="Engine1"),
-            InlineKeyboardButton("Engine2", callback_data="Engine2"),
-            InlineKeyboardButton("Engine3", callback_data="Engine3")
+            InlineKeyboardButton("Semantic Scholar", callback_data="Semantic Scholar"),
+            InlineKeyboardButton("Scopus", callback_data="Scopus"),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
