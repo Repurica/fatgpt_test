@@ -3,3 +3,6 @@ openai
 pdfreader
 pypdf2
 pys2
+cohere
+requests
+unpywall

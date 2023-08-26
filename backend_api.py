@@ -3,14 +3,12 @@ import PyPDF2
 import re
 import json
 import requests
-import cohere 
+# import cohere 
 import json
 from unpywall import Unpywall
 from unpywall.utils import UnpywallCredentials
 
-
-
-co = cohere.Client('L3YxAjptxoiLXbhbiSh9C2yuB7mCIRQCLoMIcxqa') # This is your trial API key
+# co = cohere.Client('L3YxAjptxoiLXbhbiSh9C2yuB7mCIRQCLoMIcxqa') # This is your trial API key
 openai.api_key = "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"
 scopusKey = "17abfb9454e405a8ebb7b7e73b1c7695"
 primoAPI = "l8xxce68e59740b24a3e96d67f05ab25da03"
@@ -18,12 +16,12 @@ primoAPI = "l8xxce68e59740b24a3e96d67f05ab25da03"
 
 UnpywallCredentials('nick.haupka@gmail.com')
 # Loop through all the retrived DOIs from Scopus/Semantic Scholar to check if there are OpenAccess Articles
-def CheckOpenAccess(titleDOI):
+def CheckOpenAccess(titleDOI, username):
     for book in titleDOI:
       try:
           response = requests.get(Unpywall.get_pdf_link(doi=book[1]))
           filename = book[0] + ".pdf"
-          with open(filename, 'wb') as f:
+          with open(username+"/"+filename, 'wb') as f:
               f.write(response.content)
       except:
           print("Sorry, no open access articles found")
@@ -132,6 +130,7 @@ def summarisation(file_directory):
 
   return final_summary,json.loads(topics)
 
+# Function for chatting with the GPT-4 based model.
 def context(message, chat_context):
     if not chat_context:
         chat_context = {
