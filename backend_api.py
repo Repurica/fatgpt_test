@@ -181,7 +181,7 @@ def context(message, chat_context):
 
 #     return recs
 
-def SemanticSchoalr(topic : str):
+def SemanticScholar(topic : str):
     # offset: skip first 10 result, limit: limit the number of records output, fields
     # query':context.user_data["query"] --> the actual query from the next message
     url ="http://api.semanticscholar.org/graph/v1/paper/search"
@@ -191,17 +191,18 @@ def SemanticSchoalr(topic : str):
     res_dict = response.json()
     data_dict = res_dict["data"] # This is array of dicts with all info of results
     # print(res_dict["total"])
-
+    #print(data_dict)
     # Check if there's any results
     if (res_dict["total"]>0):
         for item in data_dict:
             for key in item :
-                #print(key)
+                # print(key)
                 if (key == "externalIds"):
                     if (item[key].get("DOI")):
-                        # print(item[key])
                         doi = item[key]["DOI"]
-                        recs.append(doi)
+            title = item["title"]
+
+            recs.append([title,doi])
 
         return recs
     else:
