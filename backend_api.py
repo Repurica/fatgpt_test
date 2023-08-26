@@ -5,11 +5,27 @@ import json
 import requests
 import cohere 
 import json
+from unpywall import Unpywall
+from unpywall.utils import UnpywallCredentials
+
+
 
 co = cohere.Client('L3YxAjptxoiLXbhbiSh9C2yuB7mCIRQCLoMIcxqa') # This is your trial API key
 openai.api_key = "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"
 
 
+UnpywallCredentials('nick.haupka@gmail.com')
+# Loop through all the retrived DOIs from Scopus/Semantic Scholar to check if there are OpenAccess Articles
+def CheckOpenAccess(titleDOI):
+    for book in titleDOI:
+      try:
+          response = requests.get(Unpywall.get_pdf_link(doi=book[1]))
+          filename = book[0] + ".pdf"
+          with open(filename, 'wb') as f:
+              f.write(response.content)
+      except:
+          print("Sorry, no open access articles found")
+    
 
 
 def summarisation(file_directory):
