@@ -208,9 +208,6 @@ def SemanticSchoalr(topic : str):
         text="Sorry, we were unable to find any articles relating to " + topic + "."
         return text
 
-
-
-
 def scopus(topic : str):
     url = "https://api.elsevier.com/content/search/scopus?"
     topic += ",OPENACCESS"
