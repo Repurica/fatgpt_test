@@ -250,15 +250,49 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("here")
     query=update.message.text
     function={"Semantic Scholar":"SemanticScholar","Scopus":"scopus"}
+    username=update.message.from_user.username
     if "engine" not in context.user_data:
         context.user_data["engine"]="Semantic Scholar"
         result=eval("backend_api.SemanticScholar(query)")
+
     else:
         engine=function[context.user_data['engine']]
         result=eval("backend_api."+engine+"(query)")
+    
+    backend_api.CheckOpenAccess(result,username)
+
+    if(os.path.exists(username)):
+        shutil.rmtree(username)
+    os.mkdir(username)
+    file_list=[]
+    directory=os.getcwd()+"/"+username
+
+    for filename in os.listdir(directory):
+        file_list.append(filename)
+        
+
+
     output=""
+    
     for article in result:
-        output+="<b>"+article[0]+'</b>\n\n\n'
+        if article[0]+".pdf" in file_list:
+            summary,keywords_dict=backend_api.summarisation(os.path.join(directory, filename))
+            output+="<b>"+article[0]+"</b>\n\n"+summary+"\n\nkeywords:\n"
+            for keyword in keywords_dict:
+                output+=keyword+", "
+            output[:-2]+"\n\n\n"
+        else:
+            output+="<b>"+article[0]+"</b>\n FILE NOT FOUND!!!"
+
+
+    
+
+
+
+
+
+
+
     keyboard = [
         [
             InlineKeyboardButton("keyword1", callback_data="AI"),
