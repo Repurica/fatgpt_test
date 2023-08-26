@@ -81,10 +81,10 @@ def summarisation(file_directory):
     text = get_page_text(page)
 
     page_summary = summarize_text(text)
-    page_ch_summary = summarise_cohere(text)  
+    # page_ch_summary = summarise_cohere(text)  
 
     page_summaries.append(page_summary)
-    page_summary_cohere.append(page_summary_cohere)
+    # page_summary_cohere.append(page_summary_cohere)
 
     print(page_summary)
     print()
@@ -95,7 +95,7 @@ def summarisation(file_directory):
 
   final_summary = summarize_text(all_summaries)  
   topics = summarize_text2_topic(final_summary)
-  cohere_summary = summarise_cohere(final_summary)
+  # cohere_summary = summarise_cohere(final_summary)
 
   print()
   print("OpenAI's Final Summary:")
@@ -104,8 +104,8 @@ def summarisation(file_directory):
   print("Topics Involved:")
   print(topics)
 
-  print("Cohere's Final Summary:")
-  print(cohere_summary)
+  # print("Cohere's Final Summary:")
+  # print(cohere_summary)
 
 
 
@@ -117,25 +117,25 @@ def summarisation(file_directory):
 
 
 
-# def recommended_readings(topic: str):
-#     url = "https://api.semanticscholar.org/graph/v1/paper/search?"
-#     # params = {'query':topic, 'fields':"title,year,authors,externalIds", "limit": 10}
-#     params = {'query':topic, 'fields':"externalIds", "limit": 10}
-#     response = requests.get(url, params)
-#     recs = []
-#     res_dict = response.json()
-#     data_dict = res_dict["data"] # This is array of dicts with all info of results
-#     # print(data_dict)
-#     for item in data_dict:
-#         for key in item :
-#             #print(key)
-#             if (key == "externalIds"):
-#                 if (item[key].get("DOI")):
-#                     # print(item[key])
-#                     doi = item[key]["DOI"]
-#                     recs.append(doi)
+def recommended_readings(topic: str):
+    url = "https://api.semanticscholar.org/graph/v1/paper/search?"
+    # params = {'query':topic, 'fields':"title,year,authors,externalIds", "limit": 10}
+    params = {'query':topic, 'fields':"externalIds", "limit": 10}
+    response = requests.get(url, params)
+    recs = []
+    res_dict = response.json()
+    data_dict = res_dict["data"] # This is array of dicts with all info of results
+    # print(data_dict)
+    for item in data_dict:
+        for key in item :
+            #print(key)
+            if (key == "externalIds"):
+                if (item[key].get("DOI")):
+                    # print(item[key])
+                    doi = item[key]["DOI"]
+                    recs.append(doi)
 
-#     return recs
+    return recs
 
 scopusKey = "17abfb9454e405a8ebb7b7e73b1c7695"
 
@@ -216,12 +216,4 @@ def OpenAlexRelated(topic : str):
         
         return related
 
-
-
-# print(json.dumps(recommended_readings("climate change"), indent=4))
-# print(recommended_readings("climate change"))
-# print(json.dumps(scpous("Climate Change"), indent=4))
-# scpous("Climate Change")
-# print(scpous("Covid"))
-
-# print(scpous('Covid'))
+print(OpenAlexRelated('Cloud Computing'))
