@@ -247,6 +247,9 @@ async def idea(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("here")
+    if(os.path.exists(username)):
+        shutil.rmtree(username)
+    os.mkdir(username)
     query=update.message.text
     function={"Semantic Scholar":"SemanticScholar","Scopus":"scopus"}
     username=update.message.from_user.username
@@ -260,9 +263,7 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     backend_api.CheckOpenAccess(result,username)
 
-    if(os.path.exists(username)):
-        shutil.rmtree(username)
-    os.mkdir(username)
+
     file_list=[]
     directory=os.getcwd()+"/"+username
 
@@ -281,7 +282,7 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 output+=keyword+", "
             output[:-2]+"\n\n\n"
         else:
-            output+="<b>"+article[0]+"</b>\n FILE NOT FOUND!!!"
+            output+="<b>"+article[0]+"</b>\n FILE NOT FOUND!!!\n\n\n"
 
 
     
