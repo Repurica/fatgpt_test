@@ -248,56 +248,31 @@ async def idea(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("here")
-    if("query" not in context.user_data):
-        context.user_data["query"]=update.message.text
-    # offset: skip first 10 result, limit: limit the number of records output, fields
-    # query':context.user_data["query"] --> the actual query from the next message
-    URL ="http://api.semanticscholar.org/graph/v1/paper/search"
-    PARAMS = {'query':context.user_data["query"],"offset":context.user_data["next_offset"],"fields":"title","isOpenAccess":"True"}
-    r=requests.get(url=URL, params=PARAMS)
-    data=r.json()
+    query=update.message.text
+    function=[""]
+    print(eval("backend_api.scopus(query)"))
 
-    # print(context.user_data["query"])
-    
-
-    if(data["total"]==0):
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="sorry no articles, try /idea and another keywords",
-            parse_mode="HTML"
-        )
-        return ConversationHandler.END
-
-    else:
-        output=""
-        for paper in data["data"]:
-            output+="<b>"+paper["title"]+"</b>\n\nPaper ID: "+paper["paperId"]+"\n\n"
-
-        #jm processing code
-        output+="here are your results, /query_finish to stop"
-        # await context.bot.send_message(
-        #     chat_id=update.effective_chat.id,
-        #     text=output,
-        #     parse_mode="HTML"
-        # )
-
-        keyboard = [
-            [
-                InlineKeyboardButton("keyword1", callback_data="AI"),
-                InlineKeyboardButton("keyword2", callback_data="MCU"),
-                InlineKeyboardButton("keyword3", callback_data="SPIDER")
-            ]
+    # result=backend_api.scopus(query)
+    # output=""
+    # for article in result:
+    #     output+=article[0]
+    keyboard = [
+        [
+            InlineKeyboardButton("keyword1", callback_data="AI"),
+            InlineKeyboardButton("keyword2", callback_data="MCU"),
+            InlineKeyboardButton("keyword3", callback_data="SPIDER")
         ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        # await update.message.reply_text(
-        #     "received, when finish enter /finish, cancel enter /cancel:",
-        #     reply_markup=reply_markup)
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=output,
-            parse_mode="HTML",
-            reply_markup=reply_markup
-        )
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    # await update.message.reply_text(
+    #     "received, when finish enter /finish, cancel enter /cancel:",
+    #     reply_markup=reply_markup)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="done",
+        parse_mode="HTML",
+        reply_markup=reply_markup
+    )
 
 
 async def keyword_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
