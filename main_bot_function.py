@@ -144,7 +144,7 @@ async def downloader(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text("received, when finish enter /finish, cancel enter /cancel:", reply_markup=reply_markup)
+    await update.message.reply_text("Files received, once finished enter /finish,  to cancel enter /cancel:", reply_markup=reply_markup)
  
     await file.download_to_drive(folder_name+"/"+update.message.document.file_name)
     # await context.bot.send_message(
@@ -161,7 +161,7 @@ async def upload(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="ok plz send the files, when finish enter /finish, cancel enter /cancel"
+        text="Please enter the files you wish to have summarized. Enter /finish once complete, and /cancel if you wish to do something else"
     )
     return downloader
 #end conversation
@@ -185,7 +185,7 @@ async def finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="<b>"+filename+"</b>\n\n"+summary+"\n\n"+"<b>keywords related: </b>\n"+keywords_str[:-2],
+            text="<b>"+filename+"</b>\n\n"+summary+"\n\n"+"<b>Related Keywords: </b>\n"+keywords_str[:-2],
             parse_mode="HTML"
         )
 
@@ -229,7 +229,7 @@ async def file_upload_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def send_file_without_upload_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="plz use /upload to start an upload"
+        text="Enter /upload to start an upload"
     )
 
 
@@ -239,7 +239,7 @@ async def idea(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["next_offset"]=0
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="the next message will be used to query for articles!"
+        text="The next message will be used to query for articles!"
     )
     return query
 
@@ -324,7 +324,7 @@ async def query(update: Update, context: ContextTypes.DEFAULT_TYPE):
     del context.user_data["query"]
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="retreive result from "+context.user_data["engine"]+"\n\n\n\n"+output+"\n\n"+"continue type to query, or /query_finish to end",
+        text="Results retrived from "+context.user_data["engine"]+"\n\n\n\n"+output+"\n\n"+"continue type to query, or /query_finish to end",
         parse_mode="HTML",
         reply_markup=reply_markup
     )
@@ -334,7 +334,7 @@ async def keyword_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyword = update.callback_query.data
     await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="searching <b>"+keyword + "</b> plz wait...",
+            text="Searching <b>"+keyword + "</b> Please wait...",
             parse_mode="HTML"
             )
     await update.callback_query.answer()
@@ -346,7 +346,7 @@ async def query_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="ok here are your files, lmk if it works"
+        text="Here are you files!"
     )
     return ConversationHandler.END
 
@@ -355,7 +355,7 @@ async def query_finish(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def reject_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="plz /query_finish before using another command!"
+        text="Please enter /query_finish before using another command!"
     )
 
 
