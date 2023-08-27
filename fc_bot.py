@@ -32,17 +32,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Generate response
 chat_context = {}
 
-# def get_current_weather(location):
-    # api_key = "084225f5b4f152362918c7299365548a" 
-    # url = f"https://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}"
-
-    # response = requests.get(url)
-    # data = response.json()
-
-    # weather = f"The weather in {location} is {data['weather'][0]['description']} with a temperature of {data['main']['temp']} °C"
-
-    # return json.dumps(weather)
-
 def scopus(topic : str):
     url = "https://api.elsevier.com/content/search/scopus?"
     params = {'query':topic, 'apikey':scopusKey}
@@ -104,9 +93,9 @@ async def generate_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(chat_context)
     print('\n')
     response = openai.ChatCompletion.create(
-        model="ft:gpt-3.5-turbo-0613:smulib::7rod2SNU",
+        model="gpt-4-0613",
         messages=chat_context['messages'],
-        # functions=chat_context['functions']
+        functions=chat_context['functions']
     )
 
     response_message = response["choices"][0]["message"]["content"]

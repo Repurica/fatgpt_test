@@ -369,7 +369,10 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     #bot token
-    application = ApplicationBuilder().token('6144918637:AAG5gUtKOtgsz7qjygETGdCFvnVK92wdmks').build()
+    # jin mings: 6144918637:AAG5gUtKOtgsz7qjygETGdCFvnVK92wdmks
+    # brian's:  6686804066:AAG5MprYsiKuxdUhDa3oHU0aimiNWekvSBk
+    # https://t.me/FATGPTBot
+    application = ApplicationBuilder().token('6686804066:AAG5MprYsiKuxdUhDa3oHU0aimiNWekvSBk').build()
     
     #load bot handler 
 
