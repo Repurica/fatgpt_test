@@ -25,37 +25,37 @@ primoAPI = "l8xxce68e59740b24a3e96d67f05ab25da03"
 UnpywallCredentials("nick.haupka@gmail.com")
 
 
-# Loop through all the retrived DOIs from Scopus/Semantic Scholar to check if there are OpenAccess Articles
-# def CheckOpenAccess(titleDOI, username):
-#     count=0
-#     for book in titleDOI:
-#         try:
-#             count+=1
-#             print("file ",count,":   "+book[1])
-#             response = requests.get(Unpywall.get_pdf_link(doi=book[1]))
-#             filename = book[0] + ".pdf"
-#             with open(username + "/" + filename, "wb") as f:
-#                 f.write(response.content)
-#         except:
-#             print("Sorry, no open access articles found")
-
+Loop through all the retrived DOIs from Scopus/Semantic Scholar to check if there are OpenAccess Articles
 def CheckOpenAccess(titleDOI, username):
     count=0
     for book in titleDOI:
         try:
             count+=1
-
             print("file ",count,":   "+book[1])
             response = requests.get(Unpywall.get_pdf_link(doi=book[1]))
             filename = book[0] + ".pdf"
-            test = urllib.urlopen(Unpywall.get_pdf_link(doi=book[1]))
-            meta = test.info()
-            if (meta.getheader("Content-Length")):
-
-                with open(username + "/" + filename, "wb") as f:
-                    f.write(response.content)
+            with open(username + "/" + filename, "wb") as f:
+                f.write(response.content)
         except:
             print("Sorry, no open access articles found")
+
+# def CheckOpenAccess(titleDOI, username):
+#     count=0
+#     for book in titleDOI:
+#         try:
+#             count+=1
+
+#             print("file ",count,":   "+book[1])
+#             response = requests.get(Unpywall.get_pdf_link(doi=book[1]))
+#             filename = book[0] + ".pdf"
+#             test = urllib.urlopen(Unpywall.get_pdf_link(doi=book[1]))
+#             meta = test.info()
+#             if (meta.getheader("Content-Length")):
+
+#                 with open(username + "/" + filename, "wb") as f:
+#                     f.write(response.content)
+#         except:
+#             print("Sorry, no open access articles found")
 
 def summarisation(file_directory):
     def get_page_text(page):
