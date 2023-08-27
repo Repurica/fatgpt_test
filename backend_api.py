@@ -80,7 +80,7 @@ def summarisation(file_directory):
         ]
 
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo", messages=messages
+            model="gpt-4-0613", messages=messages
         )
 
         return response["choices"][0]["message"]["content"]
@@ -95,7 +95,7 @@ def summarisation(file_directory):
         ]
 
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo", messages=messages
+            model="gpt-4-0613", messages=messages
         )
 
         return response["choices"][0]["message"]["content"]
