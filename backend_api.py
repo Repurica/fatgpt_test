@@ -25,7 +25,7 @@ primoAPI = "l8xxce68e59740b24a3e96d67f05ab25da03"
 UnpywallCredentials("nick.haupka@gmail.com")
 
 
-Loop through all the retrived DOIs from Scopus/Semantic Scholar to check if there are OpenAccess Articles
+# Loop through all the retrived DOIs from Scopus/Semantic Scholar to check if there are OpenAccess Articles
 def CheckOpenAccess(titleDOI, username):
     count=0
     for book in titleDOI:
